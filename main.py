@@ -1,66 +1,84 @@
-import random
+class ChessBoard:
+    def __init__(self, skin='classic'):
+        self.board = [[None for _ in range(8)] for _ in range(8)]
+        self.skin = skin
+        self.setup_pieces()
 
+    def setup_pieces(self):
+        piece_classes = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
+        for i, piece_class in enumerate(piece_classes):
+            self.board[0][i] = piece_class('white', self.skin)
+            self.board[7][i] = piece_class('black', self.skin)
+        for i in range(8):
+            self.board[1][i] = Pawn('white', self.skin)
+            self.board[6][i] = Pawn('black', self.skin)
+
+    def print_board(self):
+        print("  a b c d e f g h")
+        print(" +-----------------+")
+        for row in range(8):
+            print(f"{8 - row}|", end=" ")
+            for col in range(8):
+                piece = self.board[row][col]
+                print(str(piece) if piece else ' ', end=' ')
+            print(f"|{8 - row}")
+        print(" +-----------------+")
+        print("  a b c d e f g h")
+
+class ChessPiece:
+    SYMBOLS = {
+        'classic': {
+            'pawn': '♙♟', 'rook': '♖♜', 'knight': '♘♞', 'bishop': '♗♝',
+            'queen': '♕♛', 'king': '♔♚'
+        },
+        'modern': {
+            'pawn': 'Pp', 'rook': 'Rr', 'knight': 'Nn', 'bishop': 'Bb',
+            'queen': 'Qq', 'king': 'Kk'
+        },
+        'fancy': {
+            'pawn': '⚜⚛', 'rook': '🏰🏯', 'knight': '♞♘', 'bishop': '✝✙',
+            'queen': '👑♕', 'king': '♔♚'
+        }
+    }
+
+    def __init__(self, color, name, skin='classic'):
+        self.color = color
+        self.name = name
+        self.skin = skin
+
+    def __str__(self):
+        symbols = self.SYMBOLS[self.skin]
+        return symbols[self.name][0] if self.color == 'white' else symbols[self.name][1]
+
+class Pawn(ChessPiece):
+    def __init__(self, color, skin='classic'):
+        super().__init__(color, 'pawn', skin)
+
+class Rook(ChessPiece):
+    def __init__(self, color, skin='classic'):
+        super().__init__(color, 'rook', skin)
+
+class Knight(ChessPiece):
+    def __init__(self, color, skin='classic'):
+        super().__init__(color, 'knight', skin)
+
+class Bishop(ChessPiece):
+    def __init__(self, color, skin='classic'):
+        super().__init__(color, 'bishop', skin)
+
+class Queen(ChessPiece):
+    def __init__(self, color, skin='classic'):
+        super().__init__(color, 'queen', skin)
+
+class King(ChessPiece):
+    def __init__(self, color, skin='classic'):
+        super().__init__(color, 'king', skin)
 class ChessGame:
-    def __init__(self, difficulty='easy'):
-        self.board = ChessBoard()
+    def __init__(self, difficulty='easy', skin='classic'):
+        self.board = ChessBoard(skin=skin)
         self.current_player = 'white'
         self.difficulty = difficulty
-    
-    def move_piece(self, from_pos, to_pos):
-        from_row, from_col = 8 - int(from_pos[1]), ord(from_pos[0]) - ord('a')
-        to_row, to_col = 8 - int(to_pos[1]), ord(to_pos[0]) - ord('a')
-        
-        piece = self.board.board[from_row][from_col]
-        if piece is None or piece.color != self.current_player:
-            print("Invalid move: No piece of yours at this position.")
-            return False
 
-        if (to_row, to_col) not in piece.valid_moves(self.board, from_row, from_col):
-            print("Invalid move: Piece cannot move to this position.")
-            return False
-
-        self.board.board[to_row][to_col] = piece
-        self.board.board[from_row][from_col] = None
-        self.current_player = 'black' if self.current_player == 'white' else 'white'
-        return True
-    
-    def ai_move(self):
-        possible_moves = self.get_all_moves('black')
-        
-        if self.difficulty == 'easy':
-            return random.choice(possible_moves)
-        elif self.difficulty == 'medium':
-            return self.medium_ai(possible_moves)
-        elif self.difficulty == 'hard':
-            return self.hard_ai(possible_moves)
-    
-    def medium_ai(self, possible_moves):
-        # Basic strategy: prefer capturing moves
-        best_move = None
-        for move in possible_moves:
-            from_pos, to_pos = move
-            from_row, from_col = 8 - int(from_pos[1]), ord(from_pos[0]) - ord('a')
-            to_row, to_col = 8 - int(to_pos[1]), ord(to_pos[0]) - ord('a')
-            if self.board.board[to_row][to_col] is not None:  # capturing a piece
-                best_move = move
-                break
-        return best_move if best_move else random.choice(possible_moves)
-    
-    def hard_ai(self, possible_moves):
-        # Advanced AI (e.g., Minimax algorithm can be added here)
-        # For simplicity, we'll still use a basic evaluation for now.
-        return self.medium_ai(possible_moves)
-    
-    def get_all_moves(self, color):
-        moves = []
-        for row in range(8):
-            for col in range(8):
-                piece = self.board.board[row][col]
-                if piece is not None and piece.color == color:
-                    valid_moves = piece.valid_moves(self.board, row, col)
-                    for move in valid_moves:
-                        moves.append((f"{chr(col + ord('a'))}{8 - row}", f"{chr(move[1] + ord('a'))}{8 - move[0]}"))
-        return moves
 
     def play(self):
         while True:
@@ -87,5 +105,6 @@ class ChessGame:
 
 if __name__ == "__main__":
     difficulty = input("Select difficulty (easy, medium, hard): ").lower()
-    game = ChessGame(difficulty=difficulty)
+    skin = input("Select board skin (classic, modern, fancy): ").lower()
+    game = ChessGame(difficulty=difficulty, skin=skin)
     game.play()
